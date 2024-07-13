@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Big Analytics</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+        integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .movie-chart {
+            width: 390px; height: 350px; display: inline-block;
+            margin:5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+
+            <nav class="col-md-12" style="margin-top: 70px;">
+                <div class="row">
+                    <button class="btn btn-primary" id="load_data" style="margin: 15px 15px;">Load Data</button>
+                    <input type="number" name="year" id="year" value="2006" placeholder="Type year to find top movies for the year" style="margin: 20px 20px 20px 400px; width: 600px;">
+                    <button class="btn" id="barchart_btn" style="margin: 15px 0;background-color: gray;"><i class="fa fa-search"></i></button>
+                    <span name="error" id="error_field" style="display:none;">Required</span>
+                </div>
+                <!-- Linechart display -->
+                <div id="linechart-container" class="movie-chart border"></div>
+                <!-- Barchart display -->
+                <div id="container" class="movie-chart border"></div>
+                <!-- chart display -->
+                <div  id="columnchart-container" class="movie-chart border"></div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Chartjs libraries -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+        integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+        integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        crossorigin="anonymous"></script>
+    <script>
+        jQuery.noConflict();
+        // Generate charts 
+        jQuery(document).ready(function() {
+            jQuery.ajax({
+                    url: "http://127.0.0.1:8000/charts/movie_data/",
+                    type: "get", //send it through get method
+                    
+                    data: { 
+                        votes: true
+                    },
+                    success: function(response) {
+                        //Do Something
+                        console.log(response);
+                        populateLineChart(JSON.parse(response.categories));
+                    }
+                });
+            
+            jQuery('#barchart_btn').click(function () {
+                jQuery.ajax({
+                    url: "http://127.0.0.1:8000/charts/movie_data/",
+                    type: "get", //send it through get method
+                    
+                    data: { 
+                        year: jQuery('#year').val()
+                    },
+                    success: function(response) {
+                        //Do Something
+                        console.log(response);
+                        populateBarChart(JSON.parse(response.categories));
+                    }
+                });
+
+                jQuery.ajax({
+                        url: "http://127.0.0.1:8000/charts/movie_data/",
+                        type: "get", //send it through get method
+                        
+                        data: { 
+                            ratingyear: jQuery('#year').val()
+                        },
+                        success: function(response) {
+                            //Do Something
+                            console.log(response);
+                            populateColumnChart(JSON.parse(response.categories));
+                        }
+                    });
+                
+            });
+        });
+    </script>
+    
+    <script>
+        function generateBarChartSeriesData(categories) {
+                console.log(categories);
+                seriesData = [];
+                if (!categories)
+                    return seriesData;
+                
+                for (category in categories) {
+                    console.log(category)
+                    let series = {
+                        name: categories[category]['movies'],
+                        y: categories[category]['gross'],
+                        drilldown: categories[category]['movies']
+                    };
+                    seriesData.push(series);
+                    console.log(series);
+                    console.log(seriesData);
+                }
+                return seriesData;
+            }
+
+        function getBaseChartConfig() {
+                return {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        align: 'left',
+                        text: 'Top 5 Movies Gross Income'
+                    },
+                    subtitle: {
+                        align: 'left',
+                        text: 'Click the columns to view versions.'
+                    },
+                    accessibility: {
+                        announceNewData: {
+                            enabled: true
+                        }
+                    },
+                    xAxis: {
+                        type: 'category'
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Total Gross Income'
+                        }
+
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    plotOptions: {
+                        series: {
+                            borderWidth: 0,
+                            dataLabels: {
+                                enabled: true,
+                                format: '${point.y}'
+                            }
+                        }
+                    },
+
+                    tooltip: {
+                        headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+                        pointFormat: '<span style="color:{point.color}">{point.name}</span>: ' +
+                            '<b>${point.y}</b>'
+                    },
+
+                    series: [
+                        {
+                            name: 'Movie',
+                            colorByPoint: true,
+                            data: []
+                        }
+                    ],
+                    drilldown: {
+                        breadcrumbs: {
+                            position: {
+                                align: 'right'
+                            }
+                        },
+
+                    }
+                };
+            }
+
+        // Create the barchart
+
+        function populateBarChart(categories) {
+            let chartCofig = getBaseChartConfig();
+            let seriesDaata = generateBarChartSeriesData(categories);
+            chartCofig.series[0].data = seriesDaata;
+            Highcharts.chart('container', chartCofig);
+        }
+
+        // Linechart by votes
+
+        function generaateLineChartData(lineChartCategories) {
+                lineSeriesData = [];
+                if (!lineChartCategories) {
+                    return lineSeriesData;
+                }
+                for (category in lineChartCategories) {
+                    lineSeriesData.push(lineChartCategories[category]['votes']);
+                }
+                
+                return lineSeriesData;
+            }
+        function populateLineChart(categories) {
+                chartConfigLine = getBaseChartConfig();
+                chartConfigLine.chart = {};
+                chartConfigLine.title.text = "Top 5 Movies or Series";
+                chartConfigLine.subtitle.text = "By Votes";
+                chartConfigLine.accessibility = {};
+
+                chartConfigLine.yAxis.title.text = "Votes";
+                chartConfigLine.legend = {};
+                chartConfigLine.plotOptions = {};
+                chartConfigLine.tooltip = {};
+                
+                chartConfigLine.series[0].name = 'Votes';
+                chartConfigLine.series[0].data = generaateLineChartData(categories);
+                console.log(chartConfigLine);
+                Highcharts.chart('linechart-container', chartConfigLine);
+            }
+
+         // Create the columnchart
+
+        function generaateColumnChartData(columnChartCategories){
+            columnSeriesData = [];
+            if (!columnChartCategories) {
+                return columnSeriesData;
+            }
+            for (category in columnChartCategories) {
+                console.log(category)
+                let columnSeries = [];
+                columnSeries.push(columnChartCategories[category]['name']);
+                columnSeries.push(columnChartCategories[category]['rating']);
+                columnSeriesData.push(columnSeries);
+            }
+            console.log(columnSeriesData);
+            return columnSeriesData;
+
+        }
+        function populateColumnChart(categoriesColumnChart){
+            chartConfigcolumn = getBaseChartConfig();
+            chartConfigcolumn.chart.type = "column";
+            chartConfigcolumn.title.text = "Top 10 Movies According To Rating";
+            chartConfigcolumn.subtitle = {};
+            chartConfigcolumn.xAxis.type = "category";
+            chartConfigcolumn.yAxis.title = "Movies Rating";
+            chartConfigcolumn.plotOptions.series.dataLabels.format="{point.y}";
+            console.log(categoriesColumnChart);
+            chartConfigcolumn.series[0].name = 'Rating';
+            chartConfigcolumn.series[0].colors = [
+                            '#9b20d9', '#9215ac', '#861ec9', '#7a17e6', '#7010f9', '#691af3',
+                            '#6225ed', '#5b30e7', '#533be1', '#4c46db', '#4551d5', '#3e5ccf',
+                            '#3667c9', '#2f72c3', '#277dbd', '#1f88b7', '#1693b1', '#0a9eaa',
+                            '#03c69b',  '#00f194'
+                        ];
+            chartConfigcolumn.series[0].colorByPoint = 'true';
+            chartConfigcolumn.series[0].groupPadding = 0;
+            chartConfigcolumn.series[0].data = generaateColumnChartData(categoriesColumnChart);
+            console.log(chartConfigcolumn);
+            Highcharts.chart('columnchart-container', chartConfigcolumn);
+            
+        }
+        setTimeout(function(){
+            document.getElementById('barchart_btn').click();
+        },1000);
+
+    </script>
+</body>
+
+</html>
