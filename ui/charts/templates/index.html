@@ -20,7 +20,7 @@
 
             <nav class="col-md-12" style="margin-top: 70px;">
                 <div class="row">
-                    <button class="btn btn-primary" id="load_data" style="margin: 15px 15px;">Load Data</button>
+                    <button class="btn btn-primary" id="load_alldata" style="margin: 15px 15px;">Load Data</button>
                     <input type="number" name="year" id="year" value="2006" placeholder="Type year to find top movies for the year" style="margin: 20px 20px 20px 400px; width: 600px;">
                     <button class="btn" id="barchart_btn" style="margin: 15px 0;background-color: gray;"><i class="fa fa-search"></i></button>
                     <span name="error" id="error_field" style="display:none;">Required</span>
@@ -65,7 +65,7 @@
                     }
                 });
 
-            jQuery('#load_data').click(function () {
+            jQuery('#load_alldata').click(function () {
                 jQuery.ajax({
                     url: "http://127.0.0.1:8000/charts/movie_data/",
                     type: "post", //send it through get method
