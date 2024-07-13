@@ -59,7 +59,6 @@ class MoviesClass(APIView):
         year = None
         apps = None
         limit = 5
-        print(request.query_params)
         if request.query_params.get('year'):
             year = request.query_params.get('year')
             qs = qs.filter(year=year).order_by('-gross')[:limit]

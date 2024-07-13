@@ -50,6 +50,7 @@
         jQuery.noConflict();
         // Generate charts 
         jQuery(document).ready(function() {
+            
             jQuery.ajax({
                     url: "http://127.0.0.1:8000/charts/movie_data/",
                     type: "get", //send it through get method
@@ -63,6 +64,20 @@
                         populateLineChart(JSON.parse(response.categories));
                     }
                 });
+
+            jQuery('#load_data').click(function () {
+                jQuery.ajax({
+                    url: "http://127.0.0.1:8000/charts/movie_data/",
+                    type: "post", //send it through get method
+                    data: { 
+                        year: true
+                    },
+                    success: function(response) {
+                        //Do Something
+                        console.log(response);
+                    }
+            });
+        });
             
             jQuery('#barchart_btn').click(function () {
                 jQuery.ajax({
@@ -79,6 +94,8 @@
                     }
                 });
 
+                
+
                 jQuery.ajax({
                         url: "http://127.0.0.1:8000/charts/movie_data/",
                         type: "get", //send it through get method
@@ -92,8 +109,12 @@
                             populateColumnChart(JSON.parse(response.categories));
                         }
                     });
+
+                    
                 
             });
+
+           
         });
     </script>
     
